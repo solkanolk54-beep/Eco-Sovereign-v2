@@ -1,0 +1,35 @@
+// sw.js — مزامنة خلفية للبلاغات + نسخة احتياطية لطبقة البؤر عند انقطاع الشبكة.
+const DB_NAME = 'eco-offline';
+const STORE = 'outbox';
+const CACHE = 'eco-anomalies-v1';
+
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function run(db, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const req = fn(db.transaction(STORE, mode).objectStore(STORE));
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function flushOutbox() {
+  const db = await openDb();
+  const items = await run(db, 'readonly', (s) => s.getAll());
+  for (const item of items) {
+    // أي استثناء شبكة يخرج من الدالة فيُعاد الحدث لاحقاً (المتصفح يعيد المحاولة)
+    const r = await fetch(item.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item.body),
+    });
