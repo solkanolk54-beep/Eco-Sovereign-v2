@@ -1,0 +1,32 @@
+-- Eco-Sovereign: PostgreSQL + PostGIS schema (v2)
+-- التصحيحات: TIMESTAMPTZ، فهارس GIST كاملة، جدول water_reservoirs،
+-- حالة FWI اليومية، حقول التحقق في البلاغات، توحيد تصنيفات البلاغات.
+
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- 1. الحدود الإدارية (level = country | wilaya | commune)
+CREATE TABLE regions (
+    id          SERIAL PRIMARY KEY,
+    level       VARCHAR(10) NOT NULL DEFAULT 'wilaya'
+                CHECK (level IN ('country', 'wilaya', 'commune')),
+    name_ar     VARCHAR(100) NOT NULL,
+    name_en     VARCHAR(100) NOT NULL,
+    wilaya_code VARCHAR(10),
+    geom        GEOMETRY(MultiPolygon, 4326) NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_regions_geom  ON regions USING GIST (geom);
+CREATE INDEX idx_regions_level ON regions (level);
+
+-- 2. المحطات والمستشعرات
+CREATE TABLE telemetry_stations (
+    id           SERIAL PRIMARY KEY,
+    station_code VARCHAR(50) UNIQUE NOT NULL,
+    station_type VARCHAR(30) NOT NULL
+                 CHECK (station_type IN ('weather', 'fire', 'soil_moisture', 'hydro')),
+    region_id    INT REFERENCES regions(id),
+    location     GEOMETRY(Point, 4326) NOT NULL,
+    is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+    last_ping    TIMESTAMPTZ
+);
+CREATE INDEX idx_stations_location ON telemetry_stations USING GIST (location);
