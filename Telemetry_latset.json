@@ -1,0 +1,35 @@
+[
+  {
+    "station_code": "DZ-43-W01",
+    "wilaya_code": "43",
+    "lat": 36.39246,
+    "lng": 6.30886,
+    "temperature": 29.8,
+    "humidity": 43.2,
+    "wind_speed": 27.0,
+    "soil_moisture": 27.3,
+    "ndvi": 0.24,
+    "fwi": 43.51,
+    "fwi_level": "extreme",
+    "alert": true
+  },
+  {
+    "station_code": "DZ-43-F02",
+    "wilaya_code": "43",
+    "lat": 36.49448,
+    "lng": 6.34824,
+    "temperature": 31.3,
+    "humidity": 40.0,
+    "wind_speed": 16.4,
+    "soil_moisture": 26.5,
+    "ndvi": 0.205,
+    "fwi": 33.03,
+    "fwi_level": "very_high",
+    "alert": true
+  },
+  {
+    "station_code": "DZ-17-W01",
+    "wilaya_code": "17",
+    "lat": 34.59737,
+    "lng": 3.19833,
+    "temperature": 30.6,
