@@ -1,0 +1,31 @@
+"""
+يولّد بيانات تجريبية: seed.sql + anomalies.geojson + telemetry_latest.json
+التشغيل:  python generate_mock.py
+
+تنبيه: الحدود هنا مستطيلات تقريبية للعرض التجريبي فقط (وبالمثل أحجام السدود وإحداثياتها).
+للإنتاج استورد الحدود الحقيقية، مثلاً من GADM أو OSM:
+  ogr2ogr -f PostgreSQL PG:"dbname=eco user=eco" gadm41_DZA_1.json \
+          -nln regions_import -nlt MULTIPOLYGON -t_srs EPSG:4326
+ثم انقلها إلى جدول regions مع level='wilaya' وأضف صف level='country' بالحدود الوطنية.
+"""
+import json
+import math
+import random
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+import risk_engine as engine  # noqa: E402
+
+random.seed(13)
+OUT = Path(__file__).resolve().parent
+
+# (code, ar, en, lat, lng, climate)  climate: med | semi | sahara
+WILAYAS = [
+    ("43", "ميلة", "Mila", 36.4503, 6.2644, "semi"),
+    ("17", "الجلفة", "Djelfa", 34.6728, 3.2630, "semi"),
+    ("05", "باتنة", "Batna", 35.5559, 6.1741, "semi"),
+    ("15", "تيزي وزو", "Tizi Ouzou", 36.7118, 4.0459, "med"),
+    ("06", "بجاية", "Béjaïa", 36.7509, 5.0567, "med"),
+    ("13", "تلمسان", "Tlemcen", 34.8780, -1.3150, "med"),
+    ("20", "سعيدة", "Saïda", 34.8300, 0.1500, "semi"),
