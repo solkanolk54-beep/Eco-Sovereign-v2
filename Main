@@ -1,0 +1,26 @@
+"""
+Eco-Sovereign Climate & Telemetry API (v2)
+
+تشغيل:  uvicorn main:app --host 0.0.0.0 --port 8000
+البيئة:  انظر .env.example
+
+ما يفعله التشفير هنا بدقة:
+  • النقل: TLS (يُنهى عند الـ reverse proxy — لا تُشغّل الـ API بدونه في الإنتاج).
+  • التخزين: حقل details يُشفَّر على مستوى التطبيق بـ Fernet (AES-128-CBC + HMAC)
+    قبل الكتابة في القاعدة، والمفتاح خارج القاعدة.
+  • لا يُخزَّن IP ولا معرّف جهاز. يُخزَّن فقط device_fp = HMAC(secret, ip|ua|اليوم)
+    لتحديد المعدل وكشف التكرار، ويتغيّر يومياً.
+  • "مجهول" هنا يعني: لا حسابات ولا هوية في القاعدة. IP يراه الـ proxy لحظياً،
+    فعطّل تسجيل IP في سجلات الـ proxy إن كانت المجهولية مطلباً.
+"""
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import hmac
+import logging
+import os
+import time
+from contextlib import asynccontextmanager
+from datetime import date, datetime, timedelta, timezone
+from typing import Literal, Optional
